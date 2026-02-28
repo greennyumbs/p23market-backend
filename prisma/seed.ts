@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  const passwordHash = await bcrypt.hash('1234', 10);
+  const passwordHash = await bcrypt.hash('p23admin', 10);
 
   const users = [
     {
@@ -14,30 +14,30 @@ async function main() {
       role: Role.ADMIN,
       avatarIndex: 0,
     },
-    {
-      username: 'player1',
-      displayName: 'Player 1',
-      passwordHash,
-      role: Role.PLAYER,
-      avatarIndex: 1,
-      coin: 100,
-    },
-    {
-      username: 'player3',
-      displayName: 'Player 3',
-      passwordHash,
-      role: Role.PLAYER,
-      avatarIndex: 3,
-      coin: 100,
-    },
-    {
-      username: 'player4',
-      displayName: 'Player 4',
-      passwordHash,
-      role: Role.PLAYER,
-      avatarIndex: 4,
-      coin: 100,
-    },
+    //   {
+    //     username: 'player1',
+    //     displayName: 'Player 1',
+    //     passwordHash,
+    //     role: Role.PLAYER,
+    //     avatarIndex: 1,
+    //     coin: 100,
+    //   },
+    //   {
+    //     username: 'player3',
+    //     displayName: 'Player 3',
+    //     passwordHash,
+    //     role: Role.PLAYER,
+    //     avatarIndex: 3,
+    //     coin: 100,
+    //   },
+    //   {
+    //     username: 'player4',
+    //     displayName: 'Player 4',
+    //     passwordHash,
+    //     role: Role.PLAYER,
+    //     avatarIndex: 4,
+    //     coin: 100,
+    //   },
   ];
 
   for (const user of users) {
