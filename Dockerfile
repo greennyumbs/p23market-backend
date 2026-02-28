@@ -11,6 +11,9 @@ RUN npm ci
 # Copy source and prisma schema
 COPY . .
 
+# Provide a dummy DATABASE_URL just for generation/validation during build
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/unused"
+
 # Generate Prisma Client and Build
 RUN npx prisma generate
 RUN npm run build
