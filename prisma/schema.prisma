@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PLAYER
+  ADMIN
+}
+
+enum TransactionType {
+  TRANSFER
+  BORROW
+  REPAY
+  ARENA
+}
+
+enum RoomStatus {
+  OPEN
+  RESOLVED
+  CANCELLED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  username      String   @unique
+  passwordHash  String
+  displayName   String
+  avatarIndex   Int      @default(0)
+  role          Role     @default(PLAYER)
+  
+  coin          Int      @default(0)
+  bankDebt      Int      @default(0)
+  
+  // Relations
+  sentTransfers     Transaction[] @relation("SentTransactions")
+  receivedTransfers Transaction[] @relation("ReceivedTransactions")
+  
+  settlementsRun    Settlement[]  @relation("SettlementsRun")
+  settlementSnapshots SettlementSnapshot[]
+
+  ownedRooms        ArenaRoom[]   @relation("RoomOwner")
+  matchesAsOwner    ArenaMatch[]  @relation("MatchOwner")
+  matchesAsChallenger ArenaMatch[] @relation("MatchChallenger")
+  matchesWon        ArenaMatch[]  @relation("MatchWinner")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  type        TransactionType
+  
+  fromUserId  String?
+  fromUser    User?           @relation("SentTransactions", fields: [fromUserId], references: [id])
+  
+  toUserId    String?
+  toUser      User?           @relation("ReceivedTransactions", fields: [toUserId], references: [id])
+  
+  amount      Int
+  note        String?
+  
+  createdAt   DateTime        @default(now())
+
+  @@map("transactions")
+}
+
+model Settlement {
+  id            String               @id @default(cuid())
+  createdAt     DateTime             @default(now())
+  
+  runByUserId   String
+  runByUser     User                 @relation("SettlementsRun", fields: [runByUserId], references: [id])
+  
+  snapshots     SettlementSnapshot[]
+
+  @@map("settlements")
+}
+
+model SettlementSnapshot {
+  id            String     @id @default(cuid())
+  settlementId  String
+  settlement    Settlement @relation(fields: [settlementId], references: [id])
+  
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  
+  coin          Int
+  bankDebt      Int
+  net           Int
+
+  @@map("settlement_snapshots")
+}
+
+model ArenaRoom {
+  id          String     @id @default(cuid())
+  ownerId     String
+  owner       User       @relation("RoomOwner", fields: [ownerId], references: [id])
+  
+  amount      Int
+  choice      String     // "rock", "paper", "scissors" (hashed or hidden usually, but API says hidden owner choice)
+  status      RoomStatus @default(OPEN)
+  
+  match       ArenaMatch?
+  
+  createdAt   DateTime   @default(now())
+
+  @@map("arena_rooms")
+}
+
+model ArenaMatch {
+  id                String   @id @default(cuid())
+  roomId            String   @unique
+  room              ArenaRoom @relation(fields: [roomId], references: [id])
+  
+  ownerId           String
+  owner             User     @relation("MatchOwner", fields: [ownerId], references: [id])
+  
+  challengerId      String
+  challenger        User     @relation("MatchChallenger", fields: [challengerId], references: [id])
+  
+  amount            Int
+  ownerChoice       String
+  challengerChoice  String
+  
+  winnerUserId      String?
+  winner            User?    @relation("MatchWinner", fields: [winnerUserId], references: [id])
+  
+  resolvedAt        DateTime @default(now())
+
+  @@map("arena_matches")
+}
