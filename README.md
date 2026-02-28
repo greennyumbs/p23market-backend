@@ -1,52 +1,66 @@
-# P23 Market (Nuxt 4)
+# P23 Market Backend (NestJS)
 
-Internal office betting ledger app for tracking player-to-player transfers and bank borrow/repay.
+Internal office betting ledger API for tracking player-to-player transfers, bank operations, and Rock-Paper-Scissors matches.
 
 ## Stack
-- Nuxt 4
-- Vue 3 + TypeScript (`<script setup lang="ts">`)
-- Custom CSS (single theme file)
+- **Framework:** NestJS (TypeScript)
+- **ORM:** Prisma
+- **Database:** PostgreSQL
+- **Auth:** JWT (Passport)
+- **Docs:** Swagger UI
+- **Infrastructure:** Docker & Docker Compose
 
-## Core Concept
-- Currency unit: `M-coin`
-- Exchange reference: `1 coin = 10 THB`
-- Trust-based flow: no approval workflow
-- Public visibility: players and leaderboard are visible to everyone
+## Core Concepts
+- **Currency:** `M-coin` (1 coin = 10 THB)
+- **Net Worth:** `coin - bankDebt`
+- **Public Ledger:** All transactions are visible to all users.
+- **Settlements:** Periodic snapshots of all balances for historical tracking.
 
-## Current Features
-- Login/Register dialog with password
-- Dashboard with game-style UI and match feed
-- Players leaderboard (podium top-3 + rank table)
-- Transfer page with quick amount buttons (`2, 5, 10, 15, 20`)
-- Transactions page as card list
-- Bank page (`P23-Bank`) with borrow/repay modes
-- EN/TH localization
+## Features
+- **Authentication:** Login/Register with avatar selection (0-24).
+- **Transfers:** Peer-to-peer coin transfers with notes.
+- **Bank:** Borrow (increase debt/coin) and Repay (decrease debt/coin) system.
+- **Leaderboard:** Real-time ranking by net worth.
+- **Arena:** Rock-Paper-Scissors mini-game with instant settlement.
+- **Dashboard:** Aggregate stats (Total circulation, Top Winners/Losers).
 
-## Project Structure
-- `pages/` route pages
-- `layouts/default.vue` app shell, topbar, slideover, auth dialogs
-- `composables/useMMarket.ts` mock state + business logic
-- `composables/useLocale.ts` i18n messages and helpers
-- `assets/css/main.css` global design system and page styles
-- `public/images/m-coin.svg` coin asset
-- `API.md` backend API planning document
+## API Documentation
+Interactive Swagger documentation is available at:
+- `http://localhost:3000/api` (Local)
+- `https://your-api-url.railway.app/api` (Production)
 
-## Local Development (Yarn)
+## Setup & Development (Makefile)
+The project includes a `Makefile` for easier management:
+
 ```bash
-yarn install
-yarn dev
+# Install dependencies
+make install
+
+# Start database (Docker)
+docker-compose up -d
+
+# Initialize Database (Migrations + Seed)
+make db-init
+
+# Start in development mode
+make dev
 ```
 
-App default URL:
-- `http://localhost:3000`
+## Production Deployment (Railway)
+1. Push this repository to GitHub.
+2. Connect to Railway and add a PostgreSQL service.
+3. Set the following environment variables:
+   - `DATABASE_URL`: Your Railway Postgres connection string.
+   - `JWT_SECRET`: A secure random string.
+   - `PORT`: `3000`
+4. The service will automatically run `prisma migrate deploy` and `prisma db seed` on every deployment.
 
-## Demo Accounts
-Mock users are seeded in `useMMarket.ts`.
-
-- Username examples: `banker`, `player1`, `player3`, `player4`
-- Default password for seeded users: `1234`
-
-## Notes
-- This is currently frontend/mock-data driven (no real backend yet).
-- Settlement stores snapshots in memory state.
-- See `API.md` for suggested API contracts for backend integration.
+## Project Structure
+- `src/auth/` Security, JWT, and registration.
+- `src/users/` Player profiles and leaderboard.
+- `src/transactions/` Transfers and bank operations.
+- `src/arena/` RPS mini-game engine.
+- `src/settlements/` Administrative balance snapshots.
+- `src/dashboard/` Aggregated system statistics.
+- `prisma/` Schema and migrations.
+- `Dockerfile` & `docker-compose.yml` Containerization.
