@@ -24,7 +24,16 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  app.enableCors();
+  // Configure CORS
+  app.enableCors({
+    origin: [
+      'https://p23-market-production.up.railway.app', // Production frontend
+      'http://localhost:3000', // Local Nuxt development
+      'http://localhost:3001', // Alternative local port
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }
