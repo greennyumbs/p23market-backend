@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -23,6 +20,8 @@ enum TransactionType {
   BORROW
   REPAY
   ARENA
+  ARENA_ESCROW
+  ARENA_REFUND
 }
 
 enum RoomStatus {
@@ -107,11 +106,12 @@ model SettlementSnapshot {
 
 model ArenaRoom {
   id          String     @id @default(cuid())
+  name        String?
   ownerId     String
   owner       User       @relation("RoomOwner", fields: [ownerId], references: [id])
   
   amount      Int
-  choice      String     // "rock", "paper", "scissors" (hashed or hidden usually, but API says hidden owner choice)
+  choice      String     
   status      RoomStatus @default(OPEN)
   
   match       ArenaMatch?

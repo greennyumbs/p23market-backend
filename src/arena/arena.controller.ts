@@ -18,55 +18,51 @@ export class ArenaController {
   async findAllRooms() {
     const rooms = await this.arenaService.findAllRooms();
     return {
-      items: rooms.map((r) => ({
+      items: rooms.map(r => ({
         id: r.id,
+        name: r.name,
         ownerId: r.ownerId,
         ownerDisplayName: r.owner.displayName,
         ownerAvatarIndex: r.owner.avatarIndex,
         amount: r.amount,
         status: r.status.toLowerCase(),
-        createdAt: Math.floor(r.createdAt.getTime() / 1000),
-      })),
+        createdAt: Math.floor(r.createdAt.getTime() / 1000)
+      }))
     };
   }
 
   @Post('rooms')
-  @ApiOperation({
-    summary: 'Create room with fixed amount and hidden owner choice',
-  })
-  async createRoom(@GetUser('id') userId: string, @Body() body: CreateRoomDto) {
-    const room = await this.arenaService.createRoom(
-      userId,
-      body.amount,
-      body.choice,
-    );
+  @ApiOperation({ summary: 'Create room with fixed amount and hidden owner choice' })
+  async createRoom(
+    @GetUser('id') userId: string,
+    @Body() body: CreateRoomDto,
+  ) {
+    const room = await this.arenaService.createRoom(userId, body.amount, body.choice, body.name);
     return {
       ok: true,
       room: {
         id: room.id,
+        name: room.name,
         ownerId: room.ownerId,
         amount: room.amount,
         status: room.status.toLowerCase(),
-        createdAt: Math.floor(room.createdAt.getTime() / 1000),
-      },
+        createdAt: Math.floor(room.createdAt.getTime() / 1000)
+      }
     };
   }
 
   @Post('rooms/:roomId/join')
-  @ApiOperation({
-    summary: 'Join room and submit challenger choice to resolve match',
-  })
+  @ApiOperation({ summary: 'Join room and submit challenger choice to resolve match' })
   async joinRoom(
     @GetUser('id') userId: string,
     @Param('roomId') roomId: string,
     @Body() body: JoinRoomDto,
   ) {
     const match = await this.arenaService.joinRoom(userId, roomId, body.choice);
-
+    
     let outcome: 'win' | 'lose' | 'draw' = 'draw';
     if (match.winnerUserId === userId) outcome = 'win';
-    else if (match.winnerUserId && match.winnerUserId !== userId)
-      outcome = 'lose';
+    else if (match.winnerUserId && match.winnerUserId !== userId) outcome = 'lose';
 
     return {
       ok: true,
@@ -80,15 +76,11 @@ export class ArenaController {
         challengerChoice: match.challengerChoice,
         result: {
           winnerUserId: match.winnerUserId,
-          loserUserId: match.winnerUserId
-            ? match.winnerUserId === match.ownerId
-              ? match.challengerId
-              : match.ownerId
-            : null,
-          outcome,
+          loserUserId: match.winnerUserId ? (match.winnerUserId === match.ownerId ? match.challengerId : match.ownerId) : null,
+          outcome
         },
-        resolvedAt: Math.floor(match.resolvedAt.getTime() / 1000),
-      },
+        resolvedAt: Math.floor(match.resolvedAt.getTime() / 1000)
+      }
     };
   }
 
@@ -97,7 +89,7 @@ export class ArenaController {
   async findAllMatches() {
     const matches = await this.arenaService.findAllMatches();
     return {
-      items: matches.map((m) => ({
+      items: matches.map(m => ({
         id: m.id,
         roomId: m.roomId,
         ownerId: m.ownerId,
@@ -106,8 +98,8 @@ export class ArenaController {
         ownerChoice: m.ownerChoice,
         challengerChoice: m.challengerChoice,
         winnerUserId: m.winnerUserId,
-        resolvedAt: Math.floor(m.resolvedAt.getTime() / 1000),
-      })),
+        resolvedAt: Math.floor(m.resolvedAt.getTime() / 1000)
+      }))
     };
   }
 }
