@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { User, Transaction } from '@prisma/client';
+import { User, Transaction, Role } from '@prisma/client';
 
 export interface DashboardData {
   totals: {
@@ -26,7 +26,10 @@ export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
   async getDashboardData(): Promise<DashboardData> {
-    const users: User[] = await this.prisma.user.findMany();
+    // Only consider players for dashboard stats
+    const users: User[] = await this.prisma.user.findMany({
+      where: { role: Role.PLAYER }
+    });
 
     let totalCoin = 0;
     let topWinner: User | null = null;
@@ -44,11 +47,10 @@ export class DashboardService {
       }
     }
 
-    const recentTransactions: Transaction[] =
-      await this.prisma.transaction.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-      });
+    const recentTransactions: Transaction[] = await this.prisma.transaction.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
 
     return {
       totals: {

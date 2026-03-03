@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RoomStatus, TransactionType } from '@prisma/client';
 
@@ -6,9 +10,16 @@ import { RoomStatus, TransactionType } from '@prisma/client';
 export class ArenaService {
   constructor(private prisma: PrismaService) {}
 
-  async createRoom(ownerId: string, amount: number, choice: string, name?: string) {
+  async createRoom(
+    ownerId: string,
+    amount: number,
+    choice: string,
+    name?: string,
+  ) {
     if (amount < 5 || amount % 5 !== 0) {
-      throw new BadRequestException('Amount minimum is 5 and must be step of 5');
+      throw new BadRequestException(
+        'Amount minimum is 5 and must be step of 5',
+      );
     }
     const validChoices = ['rock', 'paper', 'scissors'];
     if (!validChoices.includes(choice.toLowerCase())) {
@@ -63,7 +74,11 @@ export class ArenaService {
     });
   }
 
-  async joinRoom(challengerId: string, roomId: string, challengerChoice: string) {
+  async joinRoom(
+    challengerId: string,
+    roomId: string,
+    challengerChoice: string,
+  ) {
     const validChoices = ['rock', 'paper', 'scissors'];
     if (!validChoices.includes(challengerChoice.toLowerCase())) {
       throw new BadRequestException('Invalid choice');
@@ -76,10 +91,14 @@ export class ArenaService {
       });
 
       if (!room) throw new NotFoundException('Room not found');
-      if (room.status !== RoomStatus.OPEN) throw new BadRequestException('Room is not open');
-      if (room.ownerId === challengerId) throw new BadRequestException('Cannot join your own room');
+      if (room.status !== RoomStatus.OPEN)
+        throw new BadRequestException('Room is not open');
+      if (room.ownerId === challengerId)
+        throw new BadRequestException('Cannot join your own room');
 
-      const challenger = await tx.user.findUnique({ where: { id: challengerId } });
+      const challenger = await tx.user.findUnique({
+        where: { id: challengerId },
+      });
       if (!challenger || challenger.coin < room.amount) {
         throw new BadRequestException('Insufficient balance to join room');
       }
@@ -101,7 +120,10 @@ export class ArenaService {
       });
 
       const ownerChoice = room.choice;
-      const result = this.resolveMatch(ownerChoice, challengerChoice.toLowerCase());
+      const result = this.resolveMatch(
+        ownerChoice,
+        challengerChoice.toLowerCase(),
+      );
 
       let winnerUserId: string | null = null;
       let loserUserId: string | null = null;
@@ -189,7 +211,10 @@ export class ArenaService {
     });
   }
 
-  private resolveMatch(choice1: string, choice2: string): 'win' | 'lose' | 'draw' {
+  private resolveMatch(
+    choice1: string,
+    choice2: string,
+  ): 'win' | 'lose' | 'draw' {
     if (choice1 === choice2) return 'draw';
     if (
       (choice1 === 'rock' && choice2 === 'scissors') ||

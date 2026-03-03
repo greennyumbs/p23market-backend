@@ -1,6 +1,6 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, Role } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -28,8 +28,9 @@ export class UsersService {
     });
   }
 
-  async findAll() {
+  async findAll(role?: Role) {
     return this.prisma.user.findMany({
+      where: role ? { role } : undefined,
       select: {
         id: true,
         username: true,

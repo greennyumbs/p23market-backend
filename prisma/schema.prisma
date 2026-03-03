@@ -57,6 +57,7 @@ model User {
   updatedAt     DateTime @updatedAt
 
   @@map("users")
+  @@index([role])
 }
 
 model Transaction {
@@ -75,6 +76,10 @@ model Transaction {
   createdAt   DateTime        @default(now())
 
   @@map("transactions")
+  @@index([type])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([createdAt])
 }
 
 model Settlement {
@@ -87,6 +92,7 @@ model Settlement {
   snapshots     SettlementSnapshot[]
 
   @@map("settlements")
+  @@index([createdAt])
 }
 
 model SettlementSnapshot {
@@ -102,6 +108,8 @@ model SettlementSnapshot {
   net           Int
 
   @@map("settlement_snapshots")
+  @@index([settlementId])
+  @@index([userId])
 }
 
 model ArenaRoom {
@@ -119,6 +127,9 @@ model ArenaRoom {
   createdAt   DateTime   @default(now())
 
   @@map("arena_rooms")
+  @@index([status])
+  @@index([ownerId])
+  @@index([createdAt])
 }
 
 model ArenaMatch {
@@ -142,4 +153,8 @@ model ArenaMatch {
   resolvedAt        DateTime @default(now())
 
   @@map("arena_matches")
+  @@index([ownerId])
+  @@index([challengerId])
+  @@index([winnerUserId])
+  @@index([resolvedAt])
 }

@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 
 @ApiTags('v1/players')
 @Controller('api/v1')
@@ -16,7 +17,7 @@ export class UsersController {
 
   @Get('players')
   async findAll() {
-    const items = await this.usersService.findAll();
+    const items = await this.usersService.findAll(Role.PLAYER);
     return { items: items.map((u) => ({ ...u, net: u.coin - u.bankDebt })) };
   }
 
@@ -31,7 +32,7 @@ export class UsersController {
 
   @Get('leaderboard')
   async getLeaderboard() {
-    const users = await this.usersService.findAll();
+    const users = await this.usersService.findAll(Role.PLAYER);
     const ranked = users
       .map((u) => ({
         playerId: u.id,
