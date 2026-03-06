@@ -30,6 +30,12 @@ enum RoomStatus {
   CANCELLED
 }
 
+enum InvoiceStatus {
+  PENDING   @map("pending")
+  PAID      @map("paid")
+  CANCELLED @map("cancelled")
+}
+
 model User {
   id            String   @id @default(cuid())
   username      String   @unique
@@ -52,6 +58,9 @@ model User {
   matchesAsOwner    ArenaMatch[]  @relation("MatchOwner")
   matchesAsChallenger ArenaMatch[] @relation("MatchChallenger")
   matchesWon        ArenaMatch[]  @relation("MatchWinner")
+
+  createdInvoices   Invoice[]     @relation("InvoiceCreator")
+  assignedInvoices  Invoice[]     @relation("InvoicePayer")
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -157,4 +166,25 @@ model ArenaMatch {
   @@index([challengerId])
   @@index([winnerUserId])
   @@index([resolvedAt])
+}
+
+model Invoice {
+  id                 String        @id @default(cuid())
+  createdByUserId    String
+  createdByUser      User          @relation("InvoiceCreator", fields: [createdByUserId], references: [id])
+  currentPayerUserId String
+  currentPayerUser   User          @relation("InvoicePayer", fields: [currentPayerUserId], references: [id])
+  amount             Int
+  noteLatest         String        @default("")
+  status             InvoiceStatus @default(PENDING)
+  paidAt             DateTime?
+  cancelledAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@map("invoices")
+  @@index([createdByUserId])
+  @@index([currentPayerUserId])
+  @@index([status])
+  @@index([updatedAt])
 }

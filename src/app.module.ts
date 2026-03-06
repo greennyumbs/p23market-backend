@@ -9,6 +9,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ArenaModule } from './arena/arena.module';
 import { SettlementsModule } from './settlements/settlements.module';
+import { InvoicesModule } from './invoices/invoices.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SettlementsModule } from './settlements/settlements.module';
     DashboardModule,
     ArenaModule,
     SettlementsModule,
+    InvoicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
