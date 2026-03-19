@@ -22,6 +22,12 @@ enum TransactionType {
   ARENA
   ARENA_ESCROW
   ARENA_REFUND
+  TEAM_RPS_VOTE_ESCROW
+  TEAM_RPS_VOTE_PAYOUT
+  TEAM_RPS_VOTE_REFUND
+  MAJORITY_DIE_ESCROW
+  MAJORITY_DIE_PAYOUT
+  MAJORITY_DIE_REFUND
 }
 
 enum RoomStatus {
@@ -34,6 +40,45 @@ enum InvoiceStatus {
   PENDING   @map("pending")
   PAID      @map("paid")
   CANCELLED @map("cancelled")
+}
+
+enum MiniGameMode {
+  TEAM_RPS_VOTE
+  MAJORITY_DIE
+}
+
+enum MiniGameRoomStatus {
+  WAITING
+  PLAYING
+  FINISHED
+  CANCELLED
+}
+
+enum TeamSide {
+  A
+  B
+}
+
+enum MiniGameRoundStatus {
+  OPEN
+  RESOLVED
+}
+
+enum RpsChoice {
+  ROCK
+  PAPER
+  SCISSORS
+}
+
+enum MajorityDieChoice {
+  LEFT
+  RIGHT
+}
+
+enum MajorityDieResolutionReason {
+  MINORITY_SURVIVE
+  TIE_REPLAY
+  SINGLE_SIDE_REPLAY
 }
 
 model User {
@@ -61,6 +106,10 @@ model User {
 
   createdInvoices   Invoice[]     @relation("InvoiceCreator")
   assignedInvoices  Invoice[]     @relation("InvoicePayer")
+  hostedMiniGameRooms MiniGameRoom[] @relation("MiniGameHost")
+  miniGameParticipants MiniGameParticipant[]
+  miniGameRoundSubmissions MiniGameRoundSubmission[]
+  majorityDieStageSubmissions MajorityDieStageSubmission[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -187,4 +236,146 @@ model Invoice {
   @@index([currentPayerUserId])
   @@index([status])
   @@index([updatedAt])
+}
+
+model MiniGameRoom {
+  id            String              @id @default(cuid())
+  name          String?
+  mode          MiniGameMode
+  status        MiniGameRoomStatus  @default(WAITING)
+  hostUserId    String
+  hostUser      User                @relation("MiniGameHost", fields: [hostUserId], references: [id])
+  entryStake    Int
+  stake         Int                 @default(0)
+  minPlayers    Int                 @default(4)
+  maxPlayers    Int                 @default(10)
+  stageTimeoutSec Int               @default(15)
+  currentRound  Int                 @default(0)
+  scoreA        Int                 @default(0)
+  scoreB        Int                 @default(0)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  participants  MiniGameParticipant[]
+  rounds        MiniGameRound[]
+  majorityDieStages MajorityDieStage[]
+
+  @@map("mini_game_rooms")
+  @@index([mode, status])
+  @@index([hostUserId])
+  @@index([createdAt])
+}
+
+model MiniGameParticipant {
+  id          String       @id @default(cuid())
+  roomId      String
+  room        MiniGameRoom @relation(fields: [roomId], references: [id])
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  team        TeamSide?
+  alive       Boolean      @default(true)
+  joinedAt    DateTime     @default(now())
+  leftAt      DateTime?
+
+  submissions MiniGameRoundSubmission[]
+  majorityDieSubmissions MajorityDieStageSubmission[]
+
+  @@map("mini_game_participants")
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+  @@index([team])
+}
+
+model MiniGameRound {
+  id                String               @id @default(cuid())
+  roomId            String
+  room              MiniGameRoom         @relation(fields: [roomId], references: [id])
+  roundNumber       Int
+  status            MiniGameRoundStatus  @default(OPEN)
+  inputStartedAt    DateTime
+  inputEndsAt       DateTime
+  resolvedAt        DateTime?
+  teamChoiceA       RpsChoice?
+  teamChoiceB       RpsChoice?
+  teamTieBreakA     Boolean              @default(false)
+  teamTieBreakB     Boolean              @default(false)
+  countRockA        Int                  @default(0)
+  countPaperA       Int                  @default(0)
+  countScissorsA    Int                  @default(0)
+  countRockB        Int                  @default(0)
+  countPaperB       Int                  @default(0)
+  countScissorsB    Int                  @default(0)
+  roundWinner       TeamSide?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  submissions       MiniGameRoundSubmission[]
+
+  @@map("mini_game_rounds")
+  @@unique([roomId, roundNumber])
+  @@index([roomId, status])
+}
+
+model MiniGameRoundSubmission {
+  id             String               @id @default(cuid())
+  roundId        String
+  round          MiniGameRound        @relation(fields: [roundId], references: [id])
+  participantId  String
+  participant    MiniGameParticipant  @relation(fields: [participantId], references: [id])
+  userId         String
+  user           User                 @relation(fields: [userId], references: [id])
+  choice         RpsChoice
+  autoPicked     Boolean              @default(false)
+  submittedAt    DateTime             @default(now())
+
+  @@map("mini_game_round_submissions")
+  @@unique([roundId, participantId])
+  @@index([roundId])
+  @@index([participantId])
+  @@index([userId])
+}
+
+model MajorityDieStage {
+  id               String                        @id @default(cuid())
+  roomId           String
+  room             MiniGameRoom                  @relation(fields: [roomId], references: [id])
+  stageNumber      Int
+  status           MiniGameRoundStatus           @default(OPEN)
+  inputStartedAt   DateTime
+  inputEndsAt      DateTime
+  resolvedAt       DateTime?
+  pickLeftCount    Int                           @default(0)
+  pickRightCount   Int                           @default(0)
+  minoritySide     MajorityDieChoice?
+  resolutionReason MajorityDieResolutionReason?
+  createdAt        DateTime                      @default(now())
+  updatedAt        DateTime                      @updatedAt
+
+  submissions      MajorityDieStageSubmission[]
+
+  @@map("majority_die_stages")
+  @@unique([roomId, stageNumber])
+  @@index([roomId, status])
+}
+
+model MajorityDieStageSubmission {
+  id             String                @id @default(cuid())
+  stageId        String
+  stage          MajorityDieStage      @relation(fields: [stageId], references: [id])
+  participantId  String
+  participant    MiniGameParticipant   @relation(fields: [participantId], references: [id])
+  userId         String
+  user           User                  @relation(fields: [userId], references: [id])
+  choice         MajorityDieChoice
+  autoPicked     Boolean               @default(false)
+  submittedAt    DateTime              @default(now())
+
+  @@map("majority_die_stage_submissions")
+  @@unique([stageId, participantId])
+  @@index([stageId])
+  @@index([participantId])
+  @@index([userId])
 }

@@ -10,6 +10,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { ArenaModule } from './arena/arena.module';
 import { SettlementsModule } from './settlements/settlements.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { TeamRpsVoteModule } from './team-rps-vote/team-rps-vote.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     ArenaModule,
     SettlementsModule,
     InvoicesModule,
+    TeamRpsVoteModule,
   ],
   controllers: [AppController],
   providers: [AppService],
