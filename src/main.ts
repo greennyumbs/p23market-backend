@@ -28,6 +28,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://p23-market-production.up.railway.app', // Production frontend
+      'https://p23-market-production-97cf.up.railway.app/', // internal prod fe
       'http://localhost:3000', // Local Nuxt development
       'http://localhost:3001', // Alternative local port
     ],
