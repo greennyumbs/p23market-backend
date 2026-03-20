@@ -27,6 +27,9 @@ db-init: db-migrate db-seed
 db-migrate:
 	npx prisma migrate dev --name init
 
+db-migrate-reset:
+	npx prisma migrate reset
+
 db-generate:
 	npx prisma generate
 
